@@ -350,12 +350,12 @@
 
   .hearts{
     position:absolute;
-    bottom: 48px;
-    font-size: 12px;
+    top: 6px;
+    right: 8px;
+    font-size: 13px;
     line-height:1;
     letter-spacing: 1px;
     white-space: nowrap;
-    transform: translateX(-4px);
     z-index: 5;
     pointer-events:none;
     filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35));
@@ -666,7 +666,7 @@
   const GROUND_BOTTOM = 4;
   const JUMP_HEIGHT = 78;
   const JUMP_DURATION = 520; // ms total up+down
-  const JUMP_FORWARD_PCT = 10; // horizontal drift selama lompat (% lebar lane)
+  const JUMP_FORWARD_PCT = 15; // horizontal drift selama lompat (% lebar lane)
   const MOVE_STEP = 8; // % of lane width per press
   const DINO_MIN_LEFT = 2;
   const DINO_MAX_LEFT = 30; // dino stays in left portion of lane, obstacles run at it
@@ -1147,8 +1147,6 @@
     el.style.display = "block";
     const html = heartsHtml(lives);
     if(el._html !== html){ el.innerHTML = html; el._html = html; } // update DOM hanya saat berubah
-    el.style.left = leftPct + "%";
-    el.style.bottom = (GROUND_BOTTOM + jumpY + 44) + "px";
   }
 
   async function startGame(){
