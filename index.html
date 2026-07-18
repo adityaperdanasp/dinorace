@@ -888,7 +888,10 @@
     if(!gameCode) return;
     const joinUrl = joinUrlFor(gameCode);
     const msg = `Main DinoRace yuk! 🦕🏁\nTap link ini buat langsung gabung:\n${joinUrl}\n\n(atau masukin kode ${gameCode} manual di "Gabung Game")`;
-    window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+    const waUrl = "https://wa.me/?text=" + encodeURIComponent(msg);
+    // window.open(..., "_blank") sering diblokir Safari iOS / mode standalone (PWA di-add ke Home Screen)
+    // tanpa error apa pun — navigasi tab yang sama lebih reliable lintas platform buat deep link wa.me
+    location.href = waUrl;
   });
 
   function joinUrlFor(code){
