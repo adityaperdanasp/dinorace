@@ -33,6 +33,7 @@
     --card-shadow: rgba(47,159,214,0.28);
     --lane1-a: #4aa6db; --lane1-b: #3b8ec2; --lane1-tag: #ffffff;
     --lane2-a: #94c94f; --lane2-b: #7cb23c; --lane2-tag: #ffffff;
+    --lane3-a: #c77edb; --lane3-b: #a95bc4; --lane3-tag: #ffffff;
     --primary-grad: linear-gradient(135deg, #ffb03a, #ff6f5e);
     --danger: #e11d48;
     --danger-bg: #ffe1e1;
@@ -55,6 +56,7 @@
     --card-shadow: rgba(129,140,248,0.25);
     --lane1-a: #e0f2fe; --lane1-b: #dbeafe; --lane1-tag: #0284c7;
     --lane2-a: #fdf2f8; --lane2-b: #fce7f3; --lane2-tag: #e11d48;
+    --lane3-a: #f3e8ff; --lane3-b: #e9d5ff; --lane3-tag: #9333ea;
     --primary-grad: linear-gradient(135deg, #818cf8, #f0a6ca);
     --danger: #e11d48;
     --danger-bg: #fee2e2;
@@ -152,6 +154,27 @@
   .btn:disabled{ opacity:0.5; cursor:not-allowed; }
   .btn-wa{ background:#25D366; color:#fff; box-shadow: 0 6px 18px rgba(37,211,102,0.35); margin-bottom:4px; }
   .btn-wa:hover{ filter:brightness(1.08); }
+  .player-count-picker{
+    display:flex;
+    gap:8px;
+    margin-bottom: 12px;
+  }
+  .pc-choice{
+    flex:1;
+    background: var(--panel2);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    cursor:pointer;
+  }
+  .pc-choice.selected{
+    border-color: var(--brand);
+    background: var(--panel);
+    box-shadow: 0 0 0 2px var(--brand) inset;
+  }
   .died-tag{
     position:absolute;
     inset:0;
@@ -326,6 +349,7 @@
   }
   .lane.p1{ background: linear-gradient(180deg, var(--lane1-a) 0%, var(--lane1-b) 100%); }
   .lane.p2{ background: linear-gradient(180deg, var(--lane2-a) 0%, var(--lane2-b) 100%); }
+  .lane.p3{ background: linear-gradient(180deg, var(--lane3-a) 0%, var(--lane3-b) 100%); }
   .lane:last-child{ border-bottom:none; }
   .lane .lane-tag{
     position:absolute;
@@ -341,6 +365,9 @@
   }
   .lane.p1 .lane-tag{ color: var(--lane1-tag); }
   .lane.p2 .lane-tag{ color: var(--lane2-tag); }
+  .lane.p3 .lane-tag{ color: var(--lane3-tag); }
+  .track-wrap.lanes-3 .lane{ height: 108px; }
+  .track-wrap.lanes-1 .lane{ height: 240px; }
   .lane .ground-line{
     position:absolute;
     bottom:0; left:0; right:0;
@@ -512,6 +539,8 @@
     .lane{ height: 140px; }
     .dino{ font-size: 37px; }
     .obstacle{ font-size: 24px; }
+    .track-wrap.lanes-3 .lane{ height: 96px; }
+    .track-wrap.lanes-1 .lane{ height: 220px; }
   }
 </style>
 </head>
@@ -526,14 +555,24 @@
   <!-- HOME SCREEN -->
   <div class="screen active" id="homeScreen">
     <div class="card">
+      <h2>🏃 Main Sendiri</h2>
+      <p class="sub">Latihan solo, ga perlu nunggu siapa-siapa. Langsung gas!</p>
+      <button class="btn btn-primary" id="soloGameBtn">Main Sekarang</button>
+    </div>
+
+    <div class="card">
       <h2>Buat Game Baru</h2>
-      <p class="sub">Kamu jadi Player 1 🦕. Kami buatkan kode 6-karakter, share ke temanmu buat gabung.</p>
-      <button class="btn btn-primary" id="createGameBtn">Buat Game</button>
+      <p class="sub">Kamu jadi Player 1 🦕. Kami buatkan kode 6-karakter, share ke teman buat gabung.</p>
+      <div class="player-count-picker" id="playerCountPicker">
+        <button class="pc-choice selected" data-count="2">👥 2 Pemain</button>
+        <button class="pc-choice" data-count="3">👥👤 3 Pemain</button>
+      </div>
+      <button class="btn btn-secondary" id="createGameBtn">Buat Game</button>
     </div>
 
     <div class="card">
       <h2>Gabung Game</h2>
-      <p class="sub">Punya kode dari temanmu? Masukkan di sini buat jadi Player 2 🦖.</p>
+      <p class="sub">Punya kode dari teman? Masukkan di sini buat gabung.</p>
       <input type="text" class="code-input" id="joinCodeInput" maxlength="6" placeholder="ABC123" autocomplete="off" autocapitalize="characters">
       <button class="btn btn-secondary" id="joinGameBtn">Gabung</button>
       <div class="status-msg" id="joinStatusMsg"></div>
@@ -548,11 +587,11 @@
     </div>
   </div>
 
-  <!-- WAITING SCREEN (host waits for player 2) -->
+  <!-- WAITING SCREEN (host/joiner nunggu slot lain terisi) -->
   <div class="screen" id="waitScreen">
     <div class="card">
-      <h2>Kode Pairing Kamu</h2>
-      <p class="sub">Kirim kode ini ke temanmu supaya bisa gabung ke race.</p>
+      <h2>Kode Pairing</h2>
+      <p class="sub">Kirim kode ini ke teman supaya bisa gabung ke race.</p>
       <div class="code-display">
         <div class="code" id="pairCodeVal">------</div>
         <button class="copy-btn" id="copyCodeBtn">Copy</button>
@@ -562,7 +601,7 @@
         <div class="qr-label">📷 Scan buat langsung gabung</div>
       </div>
       <button class="btn btn-wa" id="waShareBtn">📲 Share ke WhatsApp</button>
-      <div class="waiting-row"><div class="spinner"></div> Menunggu Player 2 gabung...</div>
+      <div class="waiting-row"><div class="spinner"></div> <span id="waitingText">Menunggu pemain lain gabung...</span></div>
     </div>
     <button class="btn btn-secondary" id="cancelWaitBtn">Batal</button>
   </div>
@@ -573,7 +612,8 @@
       <h2>Pilih Dino Kamu 🦖</h2>
       <p class="sub">Tap dino favoritmu! Mulai otomatis dalam <b id="selectTimer">10</b> detik.</p>
       <div class="dino-picker" id="dinoPicker"></div>
-      <div class="pick-info">Kamu: <span id="myPickEmoji">🦕</span> &nbsp;·&nbsp; Lawan: <span id="oppPickEmoji">❓</span></div>
+      <div class="pick-info">Kamu: <span id="myPickEmoji">🦕</span></div>
+      <div class="pick-info" id="oppPicksRow"></div>
     </div>
   </div>
 
@@ -590,7 +630,7 @@
     <div class="spectate-banner" id="spectateBanner" style="display:none;">💀 Kamu game over — lawan masih lari! Nunggu dia selesai...</div>
     <div class="hud">
       <div class="hud-box" id="hudP1">
-        <div class="name">🦕 Player 1</div>
+        <div class="name"><span id="hudP1Emoji">🦕</span> <span id="hudP1Name">Player 1</span></div>
         <div class="dist"><span id="distP1">0</span> m</div>
       </div>
       <div class="hud-center">
@@ -598,18 +638,26 @@
         <div class="timer" id="timerLabel">0.0s</div>
       </div>
       <div class="hud-box" id="hudP2">
-        <div class="name">🦖 Player 2</div>
+        <div class="name"><span id="hudP2Emoji">🦖</span> <span id="hudP2Name">Player 2</span></div>
         <div class="dist"><span id="distP2">0</span> m</div>
+      </div>
+      <div class="hud-box" id="hudP3" style="display:none;">
+        <div class="name"><span id="hudP3Emoji">🐉</span> <span id="hudP3Name">Player 3</span></div>
+        <div class="dist"><span id="distP3">0</span> m</div>
       </div>
     </div>
 
-    <div class="track-wrap">
+    <div class="track-wrap" id="trackWrap">
       <div class="lane p1" id="laneP1">
         <div class="lane-tag">PLAYER 1</div>
         <div class="ground-line"></div>
       </div>
       <div class="lane p2" id="laneP2">
         <div class="lane-tag">PLAYER 2</div>
+        <div class="ground-line"></div>
+      </div>
+      <div class="lane p3" id="laneP3" style="display:none;">
+        <div class="lane-tag">PLAYER 3</div>
         <div class="ground-line"></div>
       </div>
     </div>
@@ -629,12 +677,16 @@
       <p class="sub" id="overSubtitle">Hasil balapan</p>
       <div class="go-results">
         <div class="go-result" id="resultP1">
-          <div class="who">🦕 Player 1</div>
+          <div class="who"><span id="resultP1Emoji">🦕</span> <span id="resultP1Name">Player 1</span></div>
           <div class="num" id="resultP1Val">0 m</div>
         </div>
         <div class="go-result" id="resultP2">
-          <div class="who">🦖 Player 2</div>
+          <div class="who"><span id="resultP2Emoji">🦖</span> <span id="resultP2Name">Player 2</span></div>
           <div class="num" id="resultP2Val">0 m</div>
+        </div>
+        <div class="go-result" id="resultP3" style="display:none;">
+          <div class="who"><span id="resultP3Emoji">🐉</span> <span id="resultP3Name">Player 3</span></div>
+          <div class="num" id="resultP3Val">0 m</div>
         </div>
       </div>
       <div class="best-line" id="bestLine"></div>
@@ -743,11 +795,17 @@
   }
 
   // ---------------- state ----------------
-  let role = null; // 'player1' | 'player2'
+  const ROLE_LIST = ["player1", "player2", "player3"];
+  const DEFAULT_NAME = { player1: "Player 1", player2: "Player 2", player3: "Player 3" };
+  let role = null; // 'player1' | 'player2' | 'player3'
+  let isSolo = false; // true = main sendiri, tanpa Firebase sama sekali
+  let playerCount = 2; // 1 (solo), 2, atau 3
+  let selectedPlayerCount = 2; // pilihan di home screen sebelum "Buat Game"
+  let roles = ["player1", "player2"]; // roles aktif di game ini (slice dari ROLE_LIST)
+  let otherRoles = ["player2"]; // roles selain aku
   let gameCode = null;
   let gameRef = null;
   let myRef = null;
-  let oppRef = null;
   let unsubscribers = [];
 
   let raf = null;
@@ -761,30 +819,24 @@
   let currentRound = 0;
   let countingDown = false;
   let selecting = false;
-  let p1Dino = "🦕";
-  let p2Dino = "🦖";
+  let dinos = { player1: "🦕", player2: "🦖", player3: "🐉" }; // dino terpilih tiap role
 
-  let myState = {
-    leftPct: DINO_MIN_LEFT + 6,
-    jumping: false,
-    jumpStart: 0,
-    dead: false,
-    distance: 0,
-    flip: false,
-    lives: LIVES_MAX,
-    invincibleUntil: 0
-  };
-  let oppState = {
-    leftPct: DINO_MIN_LEFT + 6,
-    jumping: false,
-    jumpStart: 0,
-    dead: false,
-    distance: 0,
-    connected: false,
-    lives: LIVES_MAX,
-    blinkUntil: 0
-  };
-  let bothDone = false;
+  function freshPlayerState(){
+    return {
+      leftPct: DINO_MIN_LEFT + 6,
+      jumping: false,
+      jumpStart: 0,
+      dead: false,
+      distance: 0,
+      lives: LIVES_MAX,
+      invincibleUntil: 0, // dipakai buat "myState" (kebal lokal)
+      blinkUntil: 0,      // dipakai buat remoteStates (efek kedip visual)
+      connected: false
+    };
+  }
+
+  let myState = freshPlayerState();
+  let remoteStates = {}; // role -> state (untuk otherRoles saja)
   let lastDistWriteAt = 0;
   let finished = false;
 
@@ -873,6 +925,14 @@
   // ============================================================
   document.getElementById("createGameBtn").addEventListener("click", createGame);
   document.getElementById("joinGameBtn").addEventListener("click", joinGame);
+  document.getElementById("soloGameBtn").addEventListener("click", startSoloGame);
+  document.querySelectorAll("#playerCountPicker .pc-choice").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      selectedPlayerCount = parseInt(btn.dataset.count, 10);
+      document.querySelectorAll("#playerCountPicker .pc-choice").forEach(b=> b.classList.remove("selected"));
+      btn.classList.add("selected");
+    });
+  });
   document.getElementById("joinCodeInput").addEventListener("input", (e)=>{
     e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
   });
@@ -923,6 +983,10 @@
   });
   document.getElementById("playAgainBtn").addEventListener("click", ()=>{
     const btn = document.getElementById("playAgainBtn");
+    if(isSolo){
+      beginCountdownAndStart(); // solo: langsung ulang, ga perlu Firebase apa pun
+      return;
+    }
     if(gameRef && role){
       btn.disabled = true;
       btn.textContent = "⏳ Mulai ronde baru...";
@@ -955,25 +1019,34 @@
       }
       gameCode = code;
       role = "player1";
+      isSolo = false;
+      playerCount = selectedPlayerCount;
+      roles = ROLE_LIST.slice(0, playerCount);
+      otherRoles = roles.filter(r=> r !== role);
       gameRef = db.ref(`${GAMES_ROOT}/${gameCode}`);
 
       const initialData = {
         status: "waiting",
         createdAt: firebase.database.ServerValue.TIMESTAMP,
-        player1: { connected: true, leftPct: myState.leftPct, jumping:false, dead:false, distance:0, lives: LIVES_MAX, dino: DINO_OPTIONS[0] },
-        player2: { connected: false, leftPct: DINO_MIN_LEFT+6, jumping:false, dead:false, distance:0, lives: LIVES_MAX, dino: DINO_OPTIONS[1] },
+        playerCount: playerCount,
         seed: Math.floor(Math.random()*1e9),
         round: 0,
-        rematch: { player1: false, player2: false }
+        rematch: {}
       };
+      roles.forEach((r, i)=>{
+        initialData[r] = {
+          connected: r === "player1",
+          leftPct: DINO_MIN_LEFT+6, jumping:false, dead:false, distance:0,
+          lives: LIVES_MAX, dino: DINO_OPTIONS[i % DINO_OPTIONS.length]
+        };
+        initialData.rematch[r] = false;
+      });
       await gameRef.set(initialData);
       await gameRef.onDisconnect().update({ "player1/connected": false });
 
       document.getElementById("pairCodeVal").textContent = gameCode;
       renderJoinQR(gameCode);
-      showScreen("wait");
-
-      listenForOpponentJoin();
+      showWaitingRoom();
     } catch(err){
       console.error(err);
       toast("Gagal membuat game. Cek koneksi/konfigurasi Firebase.");
@@ -982,7 +1055,13 @@
     }
   }
 
-  function listenForOpponentJoin(){
+  function showWaitingRoom(){
+    showScreen("wait");
+    listenForGameStart();
+    listenRoomFill();
+  }
+
+  function listenForGameStart(){
     const statusHandler = gameRef.child("status").on("value", (snap)=>{
       const status = snap.val();
       if(status === "playing" && !running && !selecting && !countingDown){
@@ -991,6 +1070,23 @@
       }
     });
     unsubscribers.push(()=> gameRef.child("status").off("value", statusHandler));
+  }
+
+  function listenRoomFill(){
+    const handler = gameRef.on("value", (snap)=>{
+      const d = snap.val();
+      if(!d) return;
+      const total = d.playerCount || playerCount;
+      const connectedCount = ROLE_LIST.slice(0, total).filter(r => d[r] && d[r].connected).length;
+      const need = total - connectedCount;
+      const waitingTextEl = document.getElementById("waitingText");
+      if(waitingTextEl){
+        waitingTextEl.textContent = need > 0
+          ? `Menunggu ${need} pemain lagi... (${connectedCount}/${total})`
+          : "Semua pemain sudah gabung!";
+      }
+    });
+    unsubscribers.push(()=> gameRef.off("value", handler));
   }
 
   async function joinGame(){
@@ -1017,22 +1113,50 @@
         statusMsg.textContent = "Game ini sudah dimulai atau selesai.";
         return;
       }
+      const totalPlayers = data.playerCount || 2;
+      const allRoles = ROLE_LIST.slice(0, totalPlayers);
+      let openRole = null;
+      for(const r of allRoles.slice(1)){ // player1 selalu host, ga pernah dicari di sini
+        if(!data[r] || !data[r].connected){ openRole = r; break; }
+      }
+      if(!openRole){
+        statusMsg.textContent = "Game sudah penuh.";
+        return;
+      }
+
       gameCode = code;
-      role = "player2";
+      role = openRole;
+      isSolo = false;
+      playerCount = totalPlayers;
+      roles = allRoles;
+      otherRoles = roles.filter(r=> r !== role);
       gameRef = ref;
 
       await gameRef.update({
-        "player2/connected": true,
-        "player2/leftPct": DINO_MIN_LEFT+6,
-        "player2/jumping": false,
-        "player2/dead": false,
-        "player2/distance": 0,
-        "rematch/player2": false,
-        "status": "playing"
+        [`${role}/connected`]: true,
+        [`${role}/leftPct`]: DINO_MIN_LEFT+6,
+        [`${role}/jumping`]: false,
+        [`${role}/dead`]: false,
+        [`${role}/distance`]: 0,
+        [`rematch/${role}`]: false
       });
-      await gameRef.onDisconnect().update({ "player2/connected": false });
+      await gameRef.onDisconnect().update({ [`${role}/connected`]: false });
 
-      beginSelection();
+      // kalau join ini yang bikin room penuh, nyalain status "playing"
+      const freshSnap = await gameRef.get();
+      const freshData = freshSnap.val() || {};
+      const allConnected = roles.every(r => freshData[r] && freshData[r].connected);
+      if(allConnected){
+        await gameRef.update({ status: "playing" });
+      }
+
+      document.getElementById("pairCodeVal").textContent = gameCode;
+      renderJoinQR(gameCode);
+      if(allConnected){
+        beginSelection();
+      } else {
+        showWaitingRoom(); // masih nunggu 1 pemain lagi (mode 3 pemain)
+      }
     } catch(err){
       console.error(err);
       statusMsg.textContent = "Gagal gabung. Coba lagi.";
@@ -1042,25 +1166,49 @@
   }
 
   // ============================================================
+  // MAIN SENDIRI (solo) — tanpa Firebase sama sekali
+  // ============================================================
+  function startSoloGame(){
+    isSolo = true;
+    role = "player1";
+    gameCode = null;
+    gameRef = null;
+    playerCount = 1;
+    roles = ["player1"];
+    otherRoles = [];
+    dinos.player1 = dinos.player1 || "🦕";
+    beginCountdownAndStart();
+  }
+
+  // ============================================================
   // PILIH DINO (10 detik) → lalu countdown
   // ============================================================
+  function shortName(r){ return "P" + r.slice(-1); } // "player2" -> "P2"
+
   function beginSelection(){
     if(selecting || running || countingDown) return;
     selecting = true;
 
-    const oppRole = role === "player1" ? "player2" : "player1";
-    // default: player1 = 🦕, player2 = 🦖
-    let myPick = role === "player1" ? DINO_OPTIONS[0] : DINO_OPTIONS[1];
+    let myPick = dinos[role];
     myRef = gameRef.child(role);
-    oppRef = gameRef.child(oppRole);
     myRef.child("dino").set(myPick).catch(()=>{});
 
     const picker = document.getElementById("dinoPicker");
     picker.innerHTML = "";
     const myPickEmojiEl = document.getElementById("myPickEmoji");
-    const oppPickEmojiEl = document.getElementById("oppPickEmoji");
+    const oppPicksRow = document.getElementById("oppPicksRow");
     myPickEmojiEl.textContent = myPick;
-    oppPickEmojiEl.textContent = "❓";
+
+    // baris live nampilin pilihan tiap lawan (0, 1, atau 2 lawan)
+    oppPicksRow.innerHTML = "";
+    const oppPickEls = {};
+    otherRoles.forEach(r=>{
+      const span = document.createElement("span");
+      span.style.marginRight = "10px";
+      span.textContent = `${shortName(r)}: ❓`;
+      oppPicksRow.appendChild(span);
+      oppPickEls[r] = span;
+    });
 
     DINO_OPTIONS.forEach(emoji=>{
       const b = document.createElement("button");
@@ -1076,12 +1224,18 @@
       picker.appendChild(b);
     });
 
-    // lihat pilihan lawan secara live
-    const oppDinoHandler = oppRef.child("dino").on("value", (snap)=>{
-      const v = snap.val();
-      if(v) oppPickEmojiEl.textContent = v;
+    // lihat pilihan tiap lawan secara live
+    const oppDinoWatchers = otherRoles.map(r=>{
+      const ref = gameRef.child(r).child("dino");
+      const handler = ref.on("value", (snap)=>{
+        const v = snap.val();
+        if(v && oppPickEls[r]) oppPickEls[r].textContent = `${shortName(r)}: ${v}`;
+      });
+      return { ref, handler };
     });
-    unsubscribers.push(()=> oppRef.child("dino").off("value", oppDinoHandler));
+    oppDinoWatchers.forEach(({ref, handler})=>{
+      unsubscribers.push(()=> ref.off("value", handler));
+    });
 
     showScreen("select");
     let n = SELECT_SECONDS;
@@ -1092,7 +1246,7 @@
       timerEl.textContent = Math.max(0, n);
       if(n <= 0){
         clearInterval(iv);
-        oppRef.child("dino").off("value", oppDinoHandler);
+        oppDinoWatchers.forEach(({ref, handler})=> ref.off("value", handler));
         selecting = false;
         beginCountdownAndStart();
       }
@@ -1127,22 +1281,36 @@
   // ============================================================
   // GAME LOGIC
   // ============================================================
-  const laneP1El = document.getElementById("laneP1");
-  const laneP2El = document.getElementById("laneP2");
-  const distP1El = document.getElementById("distP1");
-  const distP2El = document.getElementById("distP2");
-  const hudP1El = document.getElementById("hudP1");
-  const hudP2El = document.getElementById("hudP2");
+  const ROLE_META = {
+    player1: {
+      laneEl: document.getElementById("laneP1"), hudEl: document.getElementById("hudP1"),
+      hudNameEl: document.getElementById("hudP1Name"), hudEmojiEl: document.getElementById("hudP1Emoji"),
+      distEl: document.getElementById("distP1"),
+      resultEl: document.getElementById("resultP1"), resultValEl: document.getElementById("resultP1Val"),
+      resultNameEl: document.getElementById("resultP1Name"), resultEmojiEl: document.getElementById("resultP1Emoji")
+    },
+    player2: {
+      laneEl: document.getElementById("laneP2"), hudEl: document.getElementById("hudP2"),
+      hudNameEl: document.getElementById("hudP2Name"), hudEmojiEl: document.getElementById("hudP2Emoji"),
+      distEl: document.getElementById("distP2"),
+      resultEl: document.getElementById("resultP2"), resultValEl: document.getElementById("resultP2Val"),
+      resultNameEl: document.getElementById("resultP2Name"), resultEmojiEl: document.getElementById("resultP2Emoji")
+    },
+    player3: {
+      laneEl: document.getElementById("laneP3"), hudEl: document.getElementById("hudP3"),
+      hudNameEl: document.getElementById("hudP3Name"), hudEmojiEl: document.getElementById("hudP3Emoji"),
+      distEl: document.getElementById("distP3"),
+      resultEl: document.getElementById("resultP3"), resultValEl: document.getElementById("resultP3Val"),
+      resultNameEl: document.getElementById("resultP3Name"), resultEmojiEl: document.getElementById("resultP3Emoji")
+    }
+  };
   const diffLabelEl = document.getElementById("diffLabel");
   const timerLabelEl = document.getElementById("timerLabel");
   const spectateBannerEl = document.getElementById("spectateBanner");
+  const trackWrapEl = document.getElementById("trackWrap");
 
-  let myDinoEl = null, oppDinoEl = null;
-  let myLaneEl = null, oppLaneEl = null;
-  let obstacleEls = {}; // id -> element (rendered once per lane pair, shared positions mirrored)
-
-  let myDiedTagEl = null, oppDiedTagEl = null;
-  let myHeartsEl = null, oppHeartsEl = null;
+  let entities = {}; // role -> {dinoEl, heartsEl, diedTagEl}
+  let obstacleEls = {}; // "<obstacleId>_<role>" -> element (satu obstacle dirender di semua lane aktif)
 
   function makeHearts(){
     const h = document.createElement("div");
@@ -1151,43 +1319,49 @@
   }
 
   function setupLanes(){
-    laneP1El.querySelectorAll(".dino, .obstacle, .died-tag, .hearts").forEach(n=>n.remove());
-    laneP2El.querySelectorAll(".dino, .obstacle, .died-tag, .hearts").forEach(n=>n.remove());
+    // bersihin & sembunyiin semua slot dulu, baru bangun ulang yang aktif buat ronde ini
+    ROLE_LIST.forEach(r=>{
+      const m = ROLE_META[r];
+      m.laneEl.querySelectorAll(".dino, .obstacle, .died-tag, .hearts").forEach(n=>n.remove());
+      m.hudEl.classList.remove("me");
+      const isActive = roles.includes(r);
+      m.laneEl.style.display = isActive ? "" : "none";
+      m.hudEl.style.display = isActive ? "" : "none";
+      m.resultEl.style.display = isActive ? "" : "none";
+    });
 
-    const t1 = document.createElement("div");
-    t1.className = "died-tag";
-    t1.textContent = "[DIED]";
-    laneP1El.appendChild(t1);
+    entities = {};
+    roles.forEach(r=>{
+      const m = ROLE_META[r];
+      const label = isSolo ? "KAMU" : "PLAYER " + r.slice(-1);
+      const nameLabel = isSolo ? "Kamu" : DEFAULT_NAME[r];
+      m.laneEl.querySelector(".lane-tag").textContent = label;
 
-    const t2 = document.createElement("div");
-    t2.className = "died-tag";
-    t2.textContent = "[DIED]";
-    laneP2El.appendChild(t2);
+      const tag = document.createElement("div");
+      tag.className = "died-tag";
+      tag.textContent = "[DIED]";
+      m.laneEl.appendChild(tag);
 
-    const d1 = document.createElement("div");
-    d1.className = "dino flip"; // flip = ngadep kanan (arah lari), permanen
-    d1.textContent = p1Dino;
-    d1.style.left = (DINO_MIN_LEFT+6) + "%";
-    laneP1El.appendChild(d1);
+      const dinoEl = document.createElement("div");
+      dinoEl.className = "dino flip"; // flip = ngadep kanan (arah lari), permanen
+      dinoEl.textContent = dinos[r];
+      dinoEl.style.left = (DINO_MIN_LEFT+6) + "%";
+      m.laneEl.appendChild(dinoEl);
 
-    const d2 = document.createElement("div");
-    d2.className = "dino flip";
-    d2.textContent = p2Dino;
-    d2.style.left = (DINO_MIN_LEFT+6) + "%";
-    laneP2El.appendChild(d2);
+      const heartsEl = makeHearts();
+      m.laneEl.appendChild(heartsEl);
 
-    const h1 = makeHearts(); laneP1El.appendChild(h1);
-    const h2 = makeHearts(); laneP2El.appendChild(h2);
+      entities[r] = { dinoEl, heartsEl, diedTagEl: tag };
 
-    if(role === "player1"){
-      myDinoEl = d1; myLaneEl = laneP1El; myDiedTagEl = t1; myHeartsEl = h1;
-      oppDinoEl = d2; oppLaneEl = laneP2El; oppDiedTagEl = t2; oppHeartsEl = h2;
-      hudP1El.classList.add("me");
-    } else {
-      myDinoEl = d2; myLaneEl = laneP2El; myDiedTagEl = t2; myHeartsEl = h2;
-      oppDinoEl = d1; oppLaneEl = laneP1El; oppDiedTagEl = t1; oppHeartsEl = h1;
-      hudP2El.classList.add("me");
-    }
+      m.hudNameEl.textContent = nameLabel;
+      m.hudEmojiEl.textContent = dinos[r];
+      m.resultNameEl.textContent = nameLabel;
+      m.resultEmojiEl.textContent = dinos[r];
+    });
+
+    ROLE_META[role].hudEl.classList.add("me");
+    trackWrapEl.classList.remove("lanes-1", "lanes-2", "lanes-3");
+    trackWrapEl.classList.add("lanes-" + playerCount);
     obstacleEls = {};
   }
 
@@ -1208,32 +1382,34 @@
   async function startGame(){
     running = true;
     finished = false;
-    bothDone = false;
     localObstacles = [];
     nextScheduleIdx = 0;
     lastDistWriteAt = 0;
 
-    myState = { leftPct: DINO_MIN_LEFT+6, jumping:false, jumpStart:0, dead:false, distance:0, flip:false, lives: LIVES_MAX, invincibleUntil: 0 };
-    oppState = { leftPct: DINO_MIN_LEFT+6, jumping:false, jumpStart:0, dead:false, distance:0, connected:true, lives: LIVES_MAX, blinkUntil: 0 };
+    myState = freshPlayerState();
+    myState.connected = true;
+    remoteStates = {};
+    otherRoles.forEach(r=>{
+      remoteStates[r] = freshPlayerState();
+      remoteStates[r].connected = true;
+    });
 
-    let seed = 1;
-    try {
-      const [seedSnap, d1Snap, d2Snap] = await Promise.all([
-        gameRef.child("seed").get(),
-        gameRef.child("player1/dino").get(),
-        gameRef.child("player2/dino").get()
-      ]);
-      seed = seedSnap.val() || 1;
-      p1Dino = d1Snap.val() || "🦕";
-      p2Dino = d2Snap.val() || "🦖";
-    } catch(err){ console.error("gagal ambil seed/dino, pakai default", err); }
+    let seed = Math.floor(Math.random()*1e9); // solo: seed lokal acak tiap ronde
+    if(!isSolo){
+      try {
+        const fetches = [gameRef.child("seed").get(), ...roles.map(r=> gameRef.child(r+"/dino").get())];
+        const snaps = await Promise.all(fetches);
+        seed = snaps[0].val() || 1;
+        roles.forEach((r, i)=>{ dinos[r] = snaps[i+1].val() || dinos[r]; });
+      } catch(err){ console.error("gagal ambil seed/dino, pakai default", err); }
+    }
     obstacleSchedule = buildObstacleSchedule(seed, SCHEDULE_DURATION_MS);
 
     setupLanes();
     showScreen("game");
     spectateBannerEl.style.display = "none";
 
-    attachRealtimeListeners();
+    if(!isSolo) attachRealtimeListeners();
     bindControls();
 
     startTime = performance.now();
@@ -1243,60 +1419,66 @@
   function attachRealtimeListeners(){
     if(listenersAttached) return; // startGame jalan lagi tiap ronde rematch — listener cukup sekali per sesi
     listenersAttached = true;
-    const oppRole = role === "player1" ? "player2" : "player1";
     myRef = gameRef.child(role);
-    oppRef = gameRef.child(oppRole);
 
-    const oppHandler = oppRef.on("value", (snap)=>{
-      const v = snap.val();
-      if(!v) return;
-      oppState.leftPct = (typeof v.leftPct === "number") ? v.leftPct : oppState.leftPct;
-      // jumpStart dari device lawan pakai jam internal dia (performance.now() beda basis antar device),
-      // jadi animasi lompat lawan dihitung ulang pakai jam lokal saat flag jumping menyala
-      if(!!v.jumping && !oppState.jumping){
-        oppState.jumpStart = performance.now();
-      }
-      oppState.jumping = !!v.jumping;
-      oppState.dead = !!v.dead;
-      oppState.distance = v.distance || 0;
-      oppState.connected = v.connected !== false;
-      const newLives = (typeof v.lives === "number") ? v.lives : oppState.lives;
-      if(newLives < oppState.lives){ oppState.blinkUntil = performance.now() + INVINCIBLE_MS; }
-      oppState.lives = newLives;
-      distP2ValueUpdate();
+    otherRoles.forEach(r=>{
+      const ref = gameRef.child(r);
+      const handler = ref.on("value", (snap)=>{
+        const v = snap.val();
+        if(!v) return;
+        const st = remoteStates[r];
+        st.leftPct = (typeof v.leftPct === "number") ? v.leftPct : st.leftPct;
+        // jumpStart dari device lawan pakai jam internal dia (performance.now() beda basis antar device),
+        // jadi animasi lompat lawan dihitung ulang pakai jam lokal saat flag jumping menyala
+        if(!!v.jumping && !st.jumping){
+          st.jumpStart = performance.now();
+        }
+        st.jumping = !!v.jumping;
+        st.dead = !!v.dead;
+        st.distance = v.distance || 0;
+        st.connected = v.connected !== false;
+        const newLives = (typeof v.lives === "number") ? v.lives : st.lives;
+        if(newLives < st.lives){ st.blinkUntil = performance.now() + INVINCIBLE_MS; }
+        st.lives = newLives;
+        ROLE_META[r].distEl.textContent = Math.round(st.distance);
+      });
+      unsubscribers.push(()=> ref.off("value", handler));
     });
-    unsubscribers.push(()=> oppRef.off("value", oppHandler));
 
     const statusHandler = gameRef.child("status").on("value", (snap)=>{
       if(snap.val() === "finished" && !finished){
-        finalizeIfBothDone(true);
+        finalizeIfAllDone(true);
       }
     });
     unsubscribers.push(()=> gameRef.child("status").off("value", statusHandler));
 
-    // rematch: satu pemain klik "Main Lagi" → langsung ronde baru di kedua device (host yang reset)
+    // rematch: satu pemain klik "Main Lagi" → langsung ronde baru di semua device (host yang reset)
     const rematchHandler = gameRef.child("rematch").on("value", (snap)=>{
       const v = snap.val() || {};
-      const oppWants = !!v[oppRole];
+      const anyOppWants = otherRoles.some(r=> v[r]);
       const iWant = !!v[role];
-      if(finished && oppWants && !iWant){
+      if(finished && anyOppWants && !iWant){
         toast("Lawan mulai ronde baru! 🏁");
       }
-      if(role === "player1" && (v.player1 || v.player2)){
-        gameRef.update({
+      if(role === "player1" && roles.some(r=> v[r])){
+        const update = {
           seed: Math.floor(Math.random()*1e9),
           round: currentRound + 1,
-          status: "playing",
-          "rematch/player1": false,
-          "rematch/player2": false,
-          "player1/dead": false, "player1/distance": 0, "player1/jumping": false,
-          "player2/dead": false, "player2/distance": 0, "player2/jumping": false
-        }).catch(()=>{});
+          status: "playing"
+        };
+        roles.forEach(r=>{
+          update[`rematch/${r}`] = false;
+          update[`${r}/dead`] = false;
+          update[`${r}/distance`] = 0;
+          update[`${r}/jumping`] = false;
+          update[`${r}/lives`] = LIVES_MAX;
+        });
+        gameRef.update(update).catch(()=>{});
       }
     });
     unsubscribers.push(()=> gameRef.child("rematch").off("value", rematchHandler));
 
-    // ronde naik = mulai ulang di kedua device (dipakai buat rematch)
+    // ronde naik = mulai ulang di semua device (dipakai buat rematch)
     const roundHandler = gameRef.child("round").on("value", (snap)=>{
       const r = snap.val();
       if(typeof r === "number" && r > currentRound){
@@ -1305,11 +1487,6 @@
       }
     });
     unsubscribers.push(()=> gameRef.child("round").off("value", roundHandler));
-  }
-
-  function distP2ValueUpdate(){
-    const oppEl = role === "player1" ? distP2El : distP1El;
-    oppEl.textContent = Math.round(oppState.distance);
   }
 
   // ---------------- controls ----------------
@@ -1409,11 +1586,11 @@
   function loop(now){
     if(!running) return;
     const elapsed = now - startTime;
+    const myEnt = entities[role];
 
     // jump physics
     getJumpOffset(myState, now); // updates myState.jumping flag as needed (side effect)
     const myJumpY = jumpOffsetPure(myState, now);
-    const oppJumpY = jumpOffsetPure(oppState, now);
 
     // lompatan bawa maju: drift horizontal mengikuti progres lompatan
     if(myState.jumping && !myState.dead){
@@ -1421,36 +1598,44 @@
       myState.leftPct = Math.min(DINO_MAX_LEFT, (myState.jumpStartLeft ?? myState.leftPct) + jp * JUMP_FORWARD_PCT);
     }
 
-    // render my dino
-    myDinoEl.style.left = myState.leftPct + "%";
-    myDinoEl.style.bottom = (GROUND_BOTTOM + myJumpY) + "px";
-    myDinoEl.classList.toggle("dead", !!myState.dead);
-    myDinoEl.classList.toggle("blink", now < myState.invincibleUntil && !myState.dead);
-    renderHearts(myHeartsEl, myState.leftPct, myJumpY, myState.lives, myState.dead);
+    // render dino aku
+    myEnt.dinoEl.style.left = myState.leftPct + "%";
+    myEnt.dinoEl.style.bottom = (GROUND_BOTTOM + myJumpY) + "px";
+    myEnt.dinoEl.classList.toggle("dead", !!myState.dead);
+    myEnt.dinoEl.classList.toggle("blink", now < myState.invincibleUntil && !myState.dead);
+    renderHearts(myEnt.heartsEl, myState.leftPct, myJumpY, myState.lives, myState.dead);
+    myEnt.diedTagEl.classList.toggle("show", !!myState.dead);
 
-    // render opponent dino
-    oppDinoEl.style.left = oppState.leftPct + "%";
-    oppDinoEl.style.bottom = (GROUND_BOTTOM + oppJumpY) + "px";
-    oppDinoEl.classList.toggle("dead", !!oppState.dead);
-    oppDinoEl.classList.toggle("blink", now < oppState.blinkUntil && !oppState.dead);
-    renderHearts(oppHeartsEl, oppState.leftPct, oppJumpY, oppState.lives, oppState.dead);
+    // render dino tiap lawan (0, 1, atau 2 tergantung mode)
+    let anyOppAlive = false;
+    otherRoles.forEach(r=>{
+      const st = remoteStates[r];
+      const ent = entities[r];
+      const jumpY = jumpOffsetPure(st, now);
+      ent.dinoEl.style.left = st.leftPct + "%";
+      ent.dinoEl.style.bottom = (GROUND_BOTTOM + jumpY) + "px";
+      ent.dinoEl.classList.toggle("dead", !!st.dead);
+      ent.dinoEl.classList.toggle("blink", now < st.blinkUntil && !st.dead);
+      renderHearts(ent.heartsEl, st.leftPct, jumpY, st.lives, st.dead);
+      ent.diedTagEl.classList.toggle("show", !!st.dead);
+      if(!st.dead) anyOppAlive = true;
+    });
 
-    // spawn + cleanup (host only)
+    // spawn + cleanup obstacle (lokal, seed-driven, identik di semua device)
     maybeSpawnObstacle(now);
     cleanupOldObstacles(now);
 
-    // render obstacles (mirrored identically in both lanes)
+    // render obstacle di semua lane aktif
     renderObstacles(elapsed);
 
     // distance increases while alive
     if(!myState.dead){
       myState.distance = elapsed / 1000 * 10; // 10 "meters" per second baseline
-      distP1IsMe() ? (distP1El.textContent = Math.round(myState.distance)) : null;
-      distP2IsMe() ? (distP2El.textContent = Math.round(myState.distance)) : null;
+      ROLE_META[role].distEl.textContent = Math.round(myState.distance);
     }
 
-    // throttled write of my state to Firebase (~10/s)
-    if(now - lastDistWriteAt > 90){
+    // throttled write ke Firebase (~10/s) — solo skip total, ga ada Firebase
+    if(!isSolo && now - lastDistWriteAt > 90){
       lastDistWriteAt = now;
       writeMyState();
     }
@@ -1463,14 +1648,12 @@
     // difficulty label + timer
     updateHud(elapsed);
 
-    // banner spectator + tanda [DIED] di lane pemain yang mati
-    spectateBannerEl.style.display = (myState.dead && !oppState.dead) ? "block" : "none";
-    myDiedTagEl.classList.toggle("show", !!myState.dead);
-    oppDiedTagEl.classList.toggle("show", !!oppState.dead);
+    // banner spectator: aku mati tapi masih ada lawan yang hidup
+    spectateBannerEl.style.display = (myState.dead && anyOppAlive) ? "block" : "none";
 
-    // end condition: both dead
-    if(myState.dead && oppState.dead && !finished){
-      finalizeIfBothDone(false);
+    // selesai kalau aku + SEMUA lawan udah mati (solo: otherRoles kosong -> selesai begitu aku mati)
+    if(myState.dead && otherRoles.every(r=> remoteStates[r].dead) && !finished){
+      finalizeIfAllDone(false);
     }
 
     if(running) raf = requestAnimationFrame(loop);
@@ -1485,9 +1668,6 @@
     return arc * JUMP_HEIGHT;
   }
 
-  function distP1IsMe(){ return role === "player1"; }
-  function distP2IsMe(){ return role === "player2"; }
-
   function renderObstacles(elapsedMs){
     const speedFrac = currentSpeedPctPerMs(elapsedMs) * 100; // % per ms (already divided by 100 above, correct here)
     const activeIds = new Set();
@@ -1496,37 +1676,29 @@
       if(age < 0) return;
       const posPct = 100 - age * speedFrac;
       activeIds.add(o.id);
-      let el1 = obstacleEls[o.id+"_1"];
-      let el2 = obstacleEls[o.id+"_2"];
-      if(!el1){
-        el1 = document.createElement("div");
-        el1.className = "obstacle" + (o.flying ? " bird" : "");
-        el1.textContent = o.emoji;
-        laneP1El.appendChild(el1);
-        obstacleEls[o.id+"_1"] = el1;
-      }
-      if(!el2){
-        el2 = document.createElement("div");
-        el2.className = "obstacle" + (o.flying ? " bird" : "");
-        el2.textContent = o.emoji;
-        laneP2El.appendChild(el2);
-        obstacleEls[o.id+"_2"] = el2;
-      }
-      el1.style.left = posPct + "%";
-      el2.style.left = posPct + "%";
-      if(o.flying){
-        el1.style.bottom = (GROUND_BOTTOM + 46) + "px";
-        el2.style.bottom = (GROUND_BOTTOM + 46) + "px";
-      }
-      if(posPct < -20 || posPct > 120){
-        el1.remove(); el2.remove();
-        delete obstacleEls[o.id+"_1"];
-        delete obstacleEls[o.id+"_2"];
-      }
+      roles.forEach(r=>{
+        const key = o.id + "_" + r;
+        let el = obstacleEls[key];
+        if(!el){
+          el = document.createElement("div");
+          el.className = "obstacle" + (o.flying ? " bird" : "");
+          el.textContent = o.emoji;
+          ROLE_META[r].laneEl.appendChild(el);
+          obstacleEls[key] = el;
+        }
+        el.style.left = posPct + "%";
+        if(o.flying){
+          el.style.bottom = (GROUND_BOTTOM + 46) + "px";
+        }
+        if(posPct < -20 || posPct > 120){
+          el.remove();
+          delete obstacleEls[key];
+        }
+      });
     });
     // remove stale DOM nodes whose obstacle no longer exists
     Object.keys(obstacleEls).forEach(key=>{
-      const id = key.replace(/_[12]$/, "");
+      const id = key.replace(/_player[123]$/, "");
       if(!activeIds.has(id)){
         obstacleEls[key].remove();
         delete obstacleEls[key];
@@ -1574,7 +1746,12 @@
     if(myState.dead) return;
     myState.dead = true;
     writeMyState(true);
-    toast(oppState.dead ? "Kamu game over!" : "Kamu game over! Nunggu lawan selesai...");
+    if(isSolo){
+      toast("Kamu game over!");
+    } else {
+      const allOppDead = otherRoles.every(r=> remoteStates[r].dead);
+      toast(allOppDead ? "Kamu game over!" : "Kamu game over! Nunggu lawan selesai...");
+    }
   }
 
   function writeMyState(force){
@@ -1598,68 +1775,86 @@
     diffLabelEl.textContent = label;
   }
 
-  function finalizeIfBothDone(fromRemote){
+  function finalizeIfAllDone(fromRemote){
     if(finished) return;
     finished = true;
     running = false;
     cancelAnimationFrame(raf);
 
+    if(isSolo){
+      showGameOver({ [role]: myState.distance });
+      return;
+    }
+
     if(role === "player1" && !fromRemote){
       gameRef.child("status").set("finished").catch(()=>{});
     }
 
-    // read final opponent distance once more before showing results
-    oppRef.get().then(snap=>{
-      const v = snap.val() || {};
-      const finalOppDist = v.distance || oppState.distance;
-      showGameOver(myState.distance, finalOppDist);
-    }).catch(()=>{
-      showGameOver(myState.distance, oppState.distance);
-    });
+    // ambil jarak final tiap lawan sekali lagi sebelum nampilin hasil
+    Promise.all(otherRoles.map(r=> gameRef.child(r).child("distance").get()))
+      .then(snaps=>{
+        const distances = { [role]: myState.distance };
+        otherRoles.forEach((r, i)=>{
+          distances[r] = snaps[i].val() ?? remoteStates[r].distance;
+        });
+        showGameOver(distances);
+      })
+      .catch(()=>{
+        const distances = { [role]: myState.distance };
+        otherRoles.forEach(r=> distances[r] = remoteStates[r].distance);
+        showGameOver(distances);
+      });
   }
 
-  function showGameOver(myDist, oppDist){
-    const p1Dist = role === "player1" ? myDist : oppDist;
-    const p2Dist = role === "player1" ? oppDist : myDist;
-
-    document.getElementById("resultP1Val").textContent = Math.round(p1Dist) + " m";
-    document.getElementById("resultP2Val").textContent = Math.round(p2Dist) + " m";
-
-    const r1El = document.getElementById("resultP1");
-    const r2El = document.getElementById("resultP2");
-    r1El.classList.remove("winner"); r2El.classList.remove("winner");
-    r1El.querySelector(".go-badge")?.remove();
-    r2El.querySelector(".go-badge")?.remove();
+  function showGameOver(distances){
+    roles.forEach(r=>{
+      ROLE_META[r].resultValEl.textContent = Math.round(distances[r]) + " m";
+      ROLE_META[r].resultEl.classList.remove("winner");
+      ROLE_META[r].resultEl.querySelector(".go-badge")?.remove();
+    });
 
     const overTitle = document.getElementById("overTitle");
     const overSub = document.getElementById("overSubtitle");
     const trophy = document.getElementById("overTrophy");
+    const bestLine = document.getElementById("bestLine");
+    const myDist = distances[role];
+    const isNewBest = setBestScoreIfHigher(myDist);
 
-    let winnerRole = null;
-    if(p1Dist > p2Dist) winnerRole = "player1";
-    else if(p2Dist > p1Dist) winnerRole = "player2";
+    if(isSolo){
+      overTitle.textContent = "Selesai! 🏁";
+      overSub.textContent = "Jarak akhir kamu:";
+      trophy.textContent = isNewBest ? "🏆" : "🏁";
+      bestLine.textContent = isNewBest
+        ? `🎉 Rekor pribadi baru: ${Math.round(myDist)} m!`
+        : `Best distance kamu: ${getBestScore()} m`;
+      showScreen("over");
+      return;
+    }
 
-    const iWon = winnerRole === role;
-    const isTie = winnerRole === null;
+    let maxDist = -1;
+    roles.forEach(r=>{ if(distances[r] > maxDist) maxDist = distances[r]; });
+    const winners = roles.filter(r=> distances[r] === maxDist);
+    const isTie = winners.length > 1;
+    const iWon = !isTie && winners[0] === role;
 
     if(isTie){
       overTitle.textContent = "Seri!";
       overSub.textContent = "Jarak kalian sama persis.";
       trophy.textContent = "🤝";
     } else {
-      const winnerName = winnerRole === "player1" ? "Player 1 🦕" : "Player 2 🦖";
+      const winnerRole = winners[0];
+      const winnerName = `${DEFAULT_NAME[winnerRole]} ${dinos[winnerRole]}`;
       overTitle.textContent = iWon ? "Kamu Menang! 🎉" : `${winnerName} Menang!`;
       overSub.textContent = iWon ? "Jarak terjauh, kamu juara balapan ini." : "Coba lagi buat balas dendam!";
       trophy.textContent = iWon ? "🏆" : "🏁";
-      (winnerRole === "player1" ? r1El : r2El).classList.add("winner");
+      const wEl = ROLE_META[winnerRole].resultEl;
+      wEl.classList.add("winner");
       const badge = document.createElement("div");
       badge.className = "go-badge";
       badge.textContent = "WINNER";
-      (winnerRole === "player1" ? r1El : r2El).appendChild(badge);
+      wEl.appendChild(badge);
     }
 
-    const isNewBest = setBestScoreIfHigher(myDist);
-    const bestLine = document.getElementById("bestLine");
     bestLine.textContent = isNewBest
       ? `🎉 Rekor pribadi baru: ${Math.round(myDist)} m!`
       : `Best distance kamu: ${getBestScore()} m`;
@@ -1679,14 +1874,15 @@
     if(gameRef && removeFromDb && role === "player1" && !finished){
       gameRef.remove().catch(()=>{});
     }
-    hudP1El.classList.remove("me");
-    hudP2El.classList.remove("me");
+    ROLE_LIST.forEach(r=> ROLE_META[r].hudEl.classList.remove("me"));
     document.getElementById("joinStatusMsg").textContent = "";
     document.getElementById("joinCodeInput").value = "";
     const playAgainBtn = document.getElementById("playAgainBtn");
     playAgainBtn.disabled = false;
     playAgainBtn.textContent = "Main Lagi";
-    gameCode = null; role = null; gameRef = null; myRef = null; oppRef = null;
+    gameCode = null; role = null; gameRef = null; myRef = null;
+    isSolo = false; playerCount = 2; roles = ["player1","player2"]; otherRoles = ["player2"];
+    remoteStates = {}; entities = {};
     listenersAttached = false; controlsBound = false; currentRound = 0; countingDown = false; selecting = false;
   }
 
