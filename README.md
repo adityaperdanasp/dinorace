@@ -43,6 +43,11 @@ Game balapan dinosaurus **2 pemain real-time** — pairing pakai kode 6 karakter
 3. Isi `firebaseConfig` di `index.html` dengan config project kamu
 4. Deploy folder ke hosting statis apa aja (Vercel, Netlify, GitHub Pages, dll)
 
+## 🧪 Testing
+
+Lihat [TESTING.md](TESTING.md) buat prompt siap pakai — ada versi cepat
+(push test, ~5 menit) dan versi lengkap (QA test, semua fitur + edge case).
+
 ---
 
 Made with ❤️ by **Adit** · Powered by Firebase
