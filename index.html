@@ -440,13 +440,13 @@
   .obstacle{
     position:absolute;
     bottom: 4px;
-    font-size: 27px;
+    font-size: 21.6px;
     line-height:1;
     will-change: left;
     z-index:3;
     filter: drop-shadow(0 3px 3px rgba(0,0,0,0.35));
   }
-  .obstacle.bird{ font-size: 24px; }
+  .obstacle.bird{ font-size: 19.2px; }
 
   .controls{
     display:flex;
@@ -538,7 +538,7 @@
   @media (max-width: 380px){
     .lane{ height: 140px; }
     .dino{ font-size: 37px; }
-    .obstacle{ font-size: 24px; }
+    .obstacle{ font-size: 19.2px; }
     .track-wrap.lanes-3 .lane{ height: 96px; }
     .track-wrap.lanes-1 .lane{ height: 220px; }
   }
@@ -1718,7 +1718,7 @@
       const dinoLeft = myState.leftPct;
       const dinoRight = myState.leftPct + 7;
       const obsLeft = posPct;
-      const obsRight = posPct + 6;
+      const obsRight = posPct + 4.8;
       const overlapX = obsRight > dinoLeft && obsLeft < dinoRight;
       if(!overlapX) continue;
       // vertical: burung terbang di atas kepala — aman selama di darat, kena kalau lompat ke arahnya;
