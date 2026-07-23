@@ -1580,9 +1580,6 @@
     const t = now - state.jumpStart;
     if(t >= JUMP_DURATION){
       state.jumping = false;
-      // balik ke posisi sebelum lompat biar tiap lompatan majunya konsisten,
-      // gak numpuk ke arah DINO_MAX_LEFT lalu mentok
-      if(state.jumpStartLeft != null) state.leftPct = state.jumpStartLeft;
       return 0;
     }
     const p = t / JUMP_DURATION; // 0..1
