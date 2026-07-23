@@ -748,9 +748,9 @@
   const DINO_MIN_LEFT = 2;
   const DINO_MAX_LEFT = 30; // dino stays in left portion of lane, obstacles run at it
   const OBSTACLE_TYPES = [
-    { type: "cactus", emoji: "🌵", w: 34 },
-    { type: "bird", emoji: "🐦", w: 30, flying: true },
-    { type: "batu", emoji: "🪨", w: 34 }
+    { type: "cactus", emoji: "🌵", w: 18 },
+    { type: "bird", emoji: "🐦", w: 16, flying: true },
+    { type: "batu", emoji: "🪨", w: 18 }
   ];
   const BASE_SPAWN_MS = 1350;
   const MIN_SPAWN_MS = 480;
@@ -1309,6 +1309,11 @@
   const spectateBannerEl = document.getElementById("spectateBanner");
   const trackWrapEl = document.getElementById("trackWrap");
 
+  // lane width in px, cached for converting fixed-px obstacle hitboxes to the
+  // engine's percent-based position system; refreshed on resize/orientation change
+  let laneWidthPx = trackWrapEl.offsetWidth || 343;
+  window.addEventListener("resize", ()=>{ laneWidthPx = trackWrapEl.offsetWidth || laneWidthPx; });
+
   let entities = {}; // role -> {dinoEl, heartsEl, diedTagEl}
   let obstacleEls = {}; // "<obstacleId>_<role>" -> element (satu obstacle dirender di semua lane aktif)
 
@@ -1718,7 +1723,7 @@
       const dinoLeft = myState.leftPct;
       const dinoRight = myState.leftPct + 7;
       const obsLeft = posPct;
-      const obsRight = posPct + 4.8;
+      const obsRight = posPct + (o.w / laneWidthPx) * 100;
       const overlapX = obsRight > dinoLeft && obsLeft < dinoRight;
       if(!overlapX) continue;
       // vertical: burung terbang di atas kepala — aman selama di darat, kena kalau lompat ke arahnya;
