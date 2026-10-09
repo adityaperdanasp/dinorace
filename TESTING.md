@@ -55,6 +55,8 @@ beberapa device kalau perlu.
 - [ ] Main Sendiri → langsung countdown, TANPA butuh Firebase/koneksi internet
       (matiin network kalau perlu buat pastiin ini bener-bener lokal).
 - [ ] Cuma 1 lane kelihatan (lane 2 & 3 hidden), HUD cuma nampilin "Kamu".
+- [ ] Jeda antar obstacle terasa longgar (rata-rata ~1.4 detik di awal, ~0.55 detik
+      di akhir) dan tetap bisa dihindari satu-satu.
 - [ ] Obstacle muncul & bisa dihindari (jalanin manual: lompat pas kaktus/batu,
       JANGAN lompat pas burung).
 - [ ] Nyawa (5 hati) berkurang tiap nabrak, dino kedip pas kebal sesaat.
@@ -73,8 +75,9 @@ beberapa device kalau perlu.
 - [ ] Countdown 3-2-1 jalan otomatis di kedua tab bareng-bareng.
 - [ ] Game screen: 2 lane warna beda, dino sesuai yang dipilih, dino ngadep
       kanan (arah lari) dari awal, TIDAK bisa balik badan pas gerak kiri.
-- [ ] Lompat: bawa dino maju sekitar 15% lebar lane (bukan cuma naik-turun
-      di tempat).
+- [ ] Lompat: puncak naik ~94px dari tanah (+4px lantai = `bottom` ~98px) dan
+      bawa dino maju ~59px (bukan cuma naik-turun di tempat). Di mode 3 pemain
+      kepala dino nggak kepotong atas lane pas di puncak.
 - [ ] Obstacle sinkron identik di kedua tab (spawn di waktu simulasi yang sama
       persis — verifikasi lewat cek elapsed time saat masing-masing mati kalau
       keduanya AFK, harusnya mati di jarak yang sama).

@@ -36,6 +36,20 @@ Game balapan dinosaurus **2 pemain real-time** — pairing pakai kode 6 karakter
 - [Firebase Realtime Database](https://firebase.google.com/docs/database) via CDN
 - Obstacle di-generate lokal dari *shared seed* (deterministic PRNG) — sinkron tanpa bergantung salah satu device tetap aktif
 
+## 🎛️ Tuning Gameplay
+
+Angka-angka feel game ada di blok `constants` di `index.html`. Update terakhir (Okt 2026):
+
+| Konstanta | Nilai | Efek |
+|-----------|-------|------|
+| `JUMP_HEIGHT` | `94` px (sebelumnya 78) | Tinggi puncak lompatan, +20% |
+| `JUMP_FORWARD_PX` | `59` px (sebelumnya 54) | Dorongan maju selama lompat, +10% (fixed px, nggak ikut lebar layar) |
+| `JUMP_DURATION` | `520` ms | Lama lompat naik+turun (nggak diubah) |
+| `BASE_SPAWN_MS` | `1550` ms (sebelumnya 1350) | Jeda antar obstacle di awal game, +~15% |
+| `MIN_SPAWN_MS` | `550` ms (sebelumnya 480) | Jeda minimum antar obstacle saat paling sulit, +~15% |
+
+Catatan: mode 3 pemain tinggi lane-nya dinaikin (108→124px, layar kecil 96→112px) supaya puncak lompatan 94px nggak kepotong. Hit-test burung/darat (`jumpY > 20` / `< 22`) nggak diubah.
+
 ## 🚀 Setup Sendiri
 
 1. Clone repo ini
